@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+
+        <style>
+            html {
+               text-align: center; 
+            }
+            p {
+                font-size: 24pt;
+            }
+            .highlight {
+                background-color: black;
+                color: white;
+            }
+        </style>
+    </head>
+    <body>
+        <p id="knotContainer"></p>
+        <p id="targetDisplayContainer"></p>
+        <p id="stitchContainer"></p>
+    </body>
+    <script src="ink.js"></script>
+    <script src="script.js"></script>
+    <script>
+        function clickWord(e) {
+            const target = e.target, highlightName = 'highlight';
+            target.classList.toggle(highlightName);
+            let targetText, targetDisplayText;
+            const newTargetText = getTargetTextFromElement(target);
+            if (Array.from(target.classList).includes(highlightName)){
+                if(!lastSelected) {
+                    lastSelected = target;
+                    return
+                }
+                document.querySelectorAll(`.${highlightName}`).forEach(e => e.classList.toggle(highlightName));
+                const prevTargetText = getTargetTextFromElement(lastSelected);
+                targetText = `${prevTargetText}${newTargetText}`;
+                document.getElementById('targetDisplayContainer').innerHTML = `${prevTargetText} + ${newTargetText}`;
+            }else {
+                document.getElementById('targetDisplayContainer').innerHTML = newTargetText;
+                targetText = getTargetTextFromElement(target);
+            }
+            lastSelected = undefined;
+            const targetStitch = `${currentKnot}.${targetText}`;
+            story.ChoosePathString(targetStitch);
+
+            if (story.state.currentPathString.split('.')[1] === '0'){
+                try{
+                    story.ChoosePathString(targetText);
+                }
+                catch(err){
+                    story.ChoosePathString(unparsableKnot);
+                }
+            }
+            continueStory();
+        }
+
+        function getTargetTextFromElement(target){
+            return target.innerHTML
+            .toLowerCase()
+            .replaceAll('.', '')
+            .replaceAll(',', '')
+            .replaceAll(' ', '')
+            .replaceAll('<br>', '');
+        }
+
+        function createLinks(inputString){
+            return inputString
+            .replaceAll('\n', ' <br>')
+            .split(' ')
+            .map((w) => `<a onclick="clickWord(event)">${w}</a>`)
+            .join(' ');
+        }
+
+        function displayText(text, target){
+            target.innerHTML = text
+            .replaceAll('&', ' ');
+        }
+        
+        function continueKnot(){
+            const newString = createLinks(story.ContinueMaximally());
+            document.getElementById('stitchContainer').innerHTML = '';
+            document.getElementById('targetDisplayContainer').innerHTML = '';
+            displayText(newString, document.getElementById('knotContainer'));
+        }
+
+        function continueStitch(){
+            const newString = createLinks(story.ContinueMaximally());
+            displayText(newString, document.getElementById('stitchContainer'));
+        }
+
+        function continueStory() {
+            let tags;
+            try{tags = story.TagsForContentAtPath(getCurrentInkStitch());}
+            catch(err){console.warn(`no valid stitch ${err}`)}
+            if (currentKnot !== getCurrentInkKnot() || tags && tags.includes('divert')){
+                const newKnot = getCurrentInkKnot();
+                if (newKnot === unparsableKnot) { 
+                    continueStitch();
+                    story.ChoosePathString(currentKnot);
+                } 
+                else {
+                    currentKnot = newKnot;
+                    continueKnot();
+                }
+                
+            }else {
+                continueStitch();
+            }
+        }
+
+        function getCurrentInkKnot(){
+            return story.state.currentPathString.split('.')[0];
+        }
+
+        function getCurrentInkStitch(){
+            return story.state.currentPathString.split('.').slice(0, 2).join('.');
+        }
+
+        const unparsableKnot = 'unparsable';
+        const story = new inkjs.Story(storyContent);
+        let currentKnot = 'carDark';
+        let lastSelected;
+        continueKnot();
+    </script>
+</html>
