@@ -1,13 +1,24 @@
+EXTERNAL setLight()
+
 -> carDark
 
 ==carDark
-    Your head is spinning.<br> Too dark to see anything with the interior&light turned off.
+    Your head is spinning.
+    Too dark to see anything with the interior&light turned&off.
     ->DONE
         =interiorlight
-        ->DONE
+        #divert
+        ->carLight
         =head
         Hurts like hell. Must've been quite the crash.
         ->DONE
 ==carLight
-    The light flickers and your eyes adjust. Seems like there's little left of the old&thing. Windshield smashed. Door bent. Glove&compartment perpetually open now.
+    ~ setLight()
+    The light flickers and your eyes adjust. Seems like there's little left of the old thing. Windshield smashed. Door bent. Glove&compartment permanently open.
+    ->DONE
+==unparsable
+    {~I'm not sure what you mean by that.|That doesn't seem to help.}
+    ->DONE
+==spinning
+    This is a dead end.
     ->DONE

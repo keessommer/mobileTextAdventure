@@ -7,37 +7,96 @@
         <title>Document</title>
 
         <style>
+            @import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+            :root {
+                --backgroundColor: black;
+                --textColor: white;
+            }
             html {
-               text-align: center; 
+                background-color: var(--backgroundColor);
+                transition: background-color 2s;
             }
             p {
-                font-size: 24pt;
+                font-size: 18pt;
+                font-family: 'Montserrat', sans-serif;
+                text-align: center;
+                color: var(--textColor);
+            }
+            a {
+                transition: all, 1s;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
             }
             .highlight {
-                background-color: black;
-                color: white;
+                background-color: var(--textColor);
+                color: var(--backgroundColor);
+                transition: all 0.3s;
             }
+            .verticalContainer {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                height: 95vh;
+            }
+            .verticalItem {
+                display: flex;
+                max-width: 800px;
+            }
+            .verticalItem.top {
+                align-items: flex-end;
+                height: 50vh;
+            }
+            .verticalItem.center {
+                align-items: center;
+                justify-content: center;
+                height: 10vh;
+            }
+            .verticalItem.bottom {
+                align-items: flex-start;
+                height: 50vh;
+            }
+
         </style>
     </head>
     <body>
-        <p id="knotContainer"></p>
-        <p id="targetDisplayContainer"></p>
-        <p id="stitchContainer"></p>
+        <div class="verticalContainer">
+            <div class="verticalItem top">
+                <p id="knotContainer"></p>
+            </div>
+            <p id="targetDisplayContainer" class="verticalItem center"> </p>
+            <div class="verticalItem bottom">
+                <p id="stitchContainer"></p>
+            </div>
+        </div>
+
     </body>
     <script src="ink.js"></script>
     <script src="script.js"></script>
     <script>
+
         function clickWord(e) {
-            const target = e.target, highlightName = 'highlight';
+            const target = e.target, highlightName = 'highlight', newTargetText = getTargetTextFromElement(target);
             target.classList.toggle(highlightName);
             let targetText, targetDisplayText;
-            const newTargetText = getTargetTextFromElement(target);
             if (Array.from(target.classList).includes(highlightName)){
                 if(!lastSelected) {
                     lastSelected = target;
-                    return
+                    return;
                 }
-                document.querySelectorAll(`.${highlightName}`).forEach(e => e.classList.toggle(highlightName));
+                document.querySelectorAll(`.${highlightName}`).forEach(e => {
+                    e.classList.remove(highlightName);
+                });
+                target.classList.add(highlightName);
+                const handleTransitionEnd = () => {
+                    target.classList.remove('highlight');
+                    target.removeEventListener('transitionend', handleTransitionEnd);
+                }
+                target.addEventListener('transitionend', handleTransitionEnd);
                 const prevTargetText = getTargetTextFromElement(lastSelected);
                 targetText = `${prevTargetText}${newTargetText}`;
                 document.getElementById('targetDisplayContainer').innerHTML = `${prevTargetText} + ${newTargetText}`;
@@ -114,18 +173,25 @@
             }
         }
 
-        function getCurrentInkKnot(){
+        function getCurrentInkKnot() {
             return story.state.currentPathString.split('.')[0];
         }
 
-        function getCurrentInkStitch(){
+        function getCurrentInkStitch() {
             return story.state.currentPathString.split('.').slice(0, 2).join('.');
+        }
+
+        function setLightTheme() {
+            let root = document.documentElement;
+            root.style.setProperty('--backgroundColor', 'white');
+            root.style.setProperty('--textColor', 'black');
         }
 
         const unparsableKnot = 'unparsable';
         const story = new inkjs.Story(storyContent);
         let currentKnot = 'carDark';
         let lastSelected;
+        story.BindExternalFunction('setLight', setLightTheme)
         continueKnot();
     </script>
 </html>
