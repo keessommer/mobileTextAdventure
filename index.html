@@ -5,7 +5,6 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Document</title>
-
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
             :root {
@@ -73,16 +72,14 @@
                 <p id="stitchContainer"></p>
             </div>
         </div>
-
     </body>
     <script src="ink.js"></script>
     <script src="script.js"></script>
     <script>
-
         function clickWord(e) {
-            const target = e.target, highlightName = 'highlight', newTargetText = getTargetTextFromElement(target);
-            target.classList.toggle(highlightName);
+            const target = e.target, highlightName = 'highlight', newDisplayText = getTargetTextFromElement(target, true);
             let targetText, targetDisplayText;
+            target.classList.toggle(highlightName);
             if (Array.from(target.classList).includes(highlightName)){
                 if(!lastSelected) {
                     lastSelected = target;
@@ -98,34 +95,39 @@
                 }
                 target.addEventListener('transitionend', handleTransitionEnd);
                 const prevTargetText = getTargetTextFromElement(lastSelected);
+                const newTargetText = getTargetTextFromElement(target)
                 targetText = `${prevTargetText}${newTargetText}`;
-                document.getElementById('targetDisplayContainer').innerHTML = `${prevTargetText} + ${newTargetText}`;
+                document.getElementById('targetDisplayContainer').innerHTML = `${getTargetTextFromElement(lastSelected, true)} + ${newDisplayText}`;
             }else {
-                document.getElementById('targetDisplayContainer').innerHTML = newTargetText;
+                document.getElementById('targetDisplayContainer').innerHTML = newDisplayText;
                 targetText = getTargetTextFromElement(target);
             }
             lastSelected = undefined;
             const targetStitch = `${currentKnot}.${targetText}`;
             story.ChoosePathString(targetStitch);
-
             if (story.state.currentPathString.split('.')[1] === '0'){
                 try{
                     story.ChoosePathString(targetText);
                 }
                 catch(err){
-                    story.ChoosePathString(unparsableKnot);
+                    story.ChoosePathString(`${currentKnot}.unparsableOverride`);
+                    if (story.state.currentPathString.split('.')[1] === '0'){
+                        story.ChoosePathString(unparsableKnot);
+                    }
                 }
             }
+
             continueStory();
         }
 
-        function getTargetTextFromElement(target){
-            return target.innerHTML
+        function getTargetTextFromElement(target, display){
+            let returnText = target.innerHTML
             .toLowerCase()
             .replaceAll('.', '')
             .replaceAll(',', '')
-            .replaceAll(' ', '')
             .replaceAll('<br>', '');
+            if(!display){ returnText = returnText.replaceAll(' ', '') }
+            return returnText;
         }
 
         function createLinks(inputString){
@@ -158,6 +160,7 @@
             try{tags = story.TagsForContentAtPath(getCurrentInkStitch());}
             catch(err){console.warn(`no valid stitch ${err}`)}
             if (currentKnot !== getCurrentInkKnot() || tags && tags.includes('divert')){
+                story.Continue();
                 const newKnot = getCurrentInkKnot();
                 if (newKnot === unparsableKnot) { 
                     continueStitch();
@@ -167,14 +170,13 @@
                     currentKnot = newKnot;
                     continueKnot();
                 }
-                
             }else {
                 continueStitch();
             }
         }
 
         function getCurrentInkKnot() {
-            return story.state.currentPathString.split('.')[0];
+            return story.state.currentPathString ? story.state.currentPathString.split('.')[0] : undefined;
         }
 
         function getCurrentInkStitch() {
@@ -187,11 +189,16 @@
             root.style.setProperty('--textColor', 'black');
         }
 
-        const unparsableKnot = 'unparsable';
-        const story = new inkjs.Story(storyContent);
-        let currentKnot = 'carDark';
-        let lastSelected;
-        story.BindExternalFunction('setLight', setLightTheme)
-        continueKnot();
+        function setDarkTheme() {
+            let root = document.documentElement;
+            root.style.setProperty('--backgroundColor', 'black');
+            root.style.setProperty('--textColor', 'white');
+        }
+
+        const unparsableKnot = 'unparsable', story = new inkjs.Story(storyContent);
+        let currentKnot, lastSelected;
+        story.BindExternalFunction('setLight', setLightTheme);
+        story.BindExternalFunction('setDark', setDarkTheme);
+        continueStory();
     </script>
 </html>

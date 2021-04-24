@@ -1,24 +1,102 @@
 EXTERNAL setLight()
+EXTERNAL setDark()
 
--> carDark
+-> intro1
+
+==intro1
+    DIVERTCATCHER
+    You seem lost, little one. 
+    Don't be afraid. Simply double click or tap any word to interact with it.
+    ->DONE
+    =unparsableOverride
+        #divert
+        ->intro2
+==intro2
+    DIVERTCATCHER
+    Yes. Good. Very good. 
+    To combine two words, click or tap both of them once.
+    ->DONE
+    =unparsableOverride
+        #divert
+        ->intro3
+
+==intro3
+    DIVERTCATCHER
+    Perfection. 
+    Now, it's time for you to wake&up. 
+    Until we meet again, little one.
+    ->DONE
+    =wakeup
+        #divert
+        ->carDark
+    =unparsableOverride
+        Don't be afraid. 
+        You simply have to wake&up.
+        ->DONE
 
 ==carDark
-    Your head is spinning.
-    Too dark to see anything with the interior&light turned&off.
+    ~ setDark()
+    DIVERTCATCHER
+    Head spinning.
+    Too dark to see anything with the interior&light off.
     ->DONE
-        =interiorlight
+    =interiorlight
         #divert
         ->carLight
-        =head
+    =head
         Hurts like hell. Must've been quite the crash.
         ->DONE
+    =spinning
+        Round and round and round and round
+        ->DONE
+    =dark
+        Black. 
+        Nothing but the faint afterglow of the interior&light.
+        ->DONE
+        
 ==carLight
     ~ setLight()
-    The light flickers and your eyes adjust. Seems like there's little left of the old thing. Windshield smashed. Door bent. Glove&compartment permanently open.
+    DIVERTCATCHER
+    Light flickers and your eyes adjust. The thing's wrecked. 
+    Windshield smashed. Door bent. Glove&compartment stuck open.
     ->DONE
+    =light
+        Interior&light shining bright. Thank god that's still working.
+        ->DONE
+    =interiorlight
+        #divert
+        ->carDark
+    =glovecompartment
+        Keys, some gum and the paperwork. Looks like a little safety&hammer in the back.
+        ->DONE
+    =windshield
+        A large crack where you hit the tree. Some branches sticking through.
+        ->DONE
+    =crack
+        Broken. Like a river running through glass.
+        ->DONE
+    =tree
+        Looks like a bristlecone pine. Beautiful specimen. Shame about the car lodged in the side.
+        ->DONE
+    =gum
+        very chewy. Been in there for years. 
+        ->DONE
+    =door
+        Bent shut. With the car collapsed like a harmonica, you're gonna have to find another way out.
+        ->DONE
+    =safetyhammerwindshield
+        You smash the glass with the little hammer. A crystal storm hails down on the dashboard. Looks like you're out.
+        ->DONE
+        
 ==unparsable
-    {~I'm not sure what you mean by that.|That doesn't seem to help.}
+    DIVERTCATCHER
+    {~Not sure what to do with that.|That doesn't seem to help.}
     ->DONE
-==spinning
-    This is a dead end.
+
+==you
+    DIVERTCATCHER
+    {~Just you. <br>But who really?|A person. <br>Or at least the shape of one.}
     ->DONE
+
+==your
+    -> you
