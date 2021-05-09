@@ -1,10 +1,9 @@
 EXTERNAL setLight()
 EXTERNAL setDark()
 
--> intro1
+-> carDark
 
 ==intro1
-    DIVERTCATCHER
     You seem lost, little one. 
     Don't be afraid. Simply double click or tap any word to interact with it.
     ->DONE
@@ -12,7 +11,6 @@ EXTERNAL setDark()
         #divert
         ->intro2
 ==intro2
-    DIVERTCATCHER
     Yes. Good. Very good. 
     To combine two words, click or tap both of them once.
     ->DONE
@@ -21,7 +19,6 @@ EXTERNAL setDark()
         ->intro3
 
 ==intro3
-    DIVERTCATCHER
     Perfection. 
     Now, it's time for you to wake&up. 
     Until we meet again, little one.
@@ -36,7 +33,6 @@ EXTERNAL setDark()
 
 ==carDark
     ~ setDark()
-    DIVERTCATCHER
     Head spinning.
     Too dark to see anything with the interior&light off.
     ->DONE
@@ -56,7 +52,6 @@ EXTERNAL setDark()
         
 ==carLight
     ~ setLight()
-    DIVERTCATCHER
     Light flickers and your eyes adjust. The thing's wrecked. 
     Windshield smashed. Door bent. Glove&compartment stuck open.
     ->DONE
@@ -89,12 +84,10 @@ EXTERNAL setDark()
         ->DONE
         
 ==unparsable
-    DIVERTCATCHER
     {~Not sure what to do with that.|That doesn't seem to help.}
     ->DONE
 
 ==you
-    DIVERTCATCHER
     {~Just you. <br>But who really?|A person. <br>Or at least the shape of one.}
     ->DONE
 

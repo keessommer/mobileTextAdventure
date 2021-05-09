@@ -74,50 +74,62 @@
         </div>
     </body>
     <script src="ink.js"></script>
-    <script src="script.js"></script>
+    <script src="script2.js"></script>
+    <!-- <script src="script.js"></script> -->
     <script>
         function clickWord(e) {
             const target = e.target, highlightName = 'highlight', newDisplayText = getTargetTextFromElement(target, true);
-            let targetText, targetDisplayText;
+            let targetText, targetDisplayText, prevTargetText, newTargetText;
             target.classList.toggle(highlightName);
             if (Array.from(target.classList).includes(highlightName)){
                 if(!lastSelected) {
                     lastSelected = target;
                     return;
                 }
-                document.querySelectorAll(`.${highlightName}`).forEach(e => {
-                    e.classList.remove(highlightName);
-                });
+                document.querySelectorAll(`.${highlightName}`).forEach(e => e.classList.remove(highlightName));
                 target.classList.add(highlightName);
                 const handleTransitionEnd = () => {
                     target.classList.remove('highlight');
                     target.removeEventListener('transitionend', handleTransitionEnd);
                 }
                 target.addEventListener('transitionend', handleTransitionEnd);
-                const prevTargetText = getTargetTextFromElement(lastSelected);
-                const newTargetText = getTargetTextFromElement(target)
+                prevTargetText = getTargetTextFromElement(lastSelected);
+                newTargetText = getTargetTextFromElement(target);
                 targetText = `${prevTargetText}${newTargetText}`;
                 document.getElementById('targetDisplayContainer').innerHTML = `${getTargetTextFromElement(lastSelected, true)} + ${newDisplayText}`;
+                combining = true;
             }else {
                 document.getElementById('targetDisplayContainer').innerHTML = newDisplayText;
                 targetText = getTargetTextFromElement(target);
             }
             lastSelected = undefined;
-            const targetStitch = `${currentKnot}.${targetText}`;
-            story.ChoosePathString(targetStitch);
+            // if a combination is made, if the combination doesn't exist, but one of them does have an entty go there
+            story.ChoosePathString(`${currentKnot}.${targetText}`);
+            let newKnotUnparsable;
             if (story.state.currentPathString.split('.')[1] === '0'){
-                try{
-                    story.ChoosePathString(targetText);
-                }
-                catch(err){
+                const handleUnparsable = () => {
                     story.ChoosePathString(`${currentKnot}.unparsableOverride`);
                     if (story.state.currentPathString.split('.')[1] === '0'){
                         story.ChoosePathString(unparsableKnot);
+                        newKnotUnparsable = true;
                     }
                 }
+                if (prevTargetText) {
+                    story.ChoosePathString(`${currentKnot}.${newTargetText}`);
+                    if (story.state.currentPathString.split('.')[1] === '0'){
+                        story.ChoosePathString(`${currentKnot}.${prevTargetText}`);
+                        if (story.state.currentPathString.split('.')[1] === '0'){
+                            handleUnparsable()
+                        }
+                    }
+                }else try{
+                    story.ChoosePathString(targetText);
+                }
+                catch(err){
+                    handleUnparsable();
+                }
             }
-
-            continueStory();
+            continueStory(newKnotUnparsable);
         }
 
         function getTargetTextFromElement(target, display){
@@ -143,34 +155,43 @@
             .replaceAll('&', ' ');
         }
         
-        function continueKnot(){
-            const newString = createLinks(story.ContinueMaximally());
+        function continueKnot(nextLine){
+            const newString = nextLine ? nextLine.concat(story.ContinueMaximally()) : story.ContinueMaximally();
+            const linkedNewstring = createLinks(newString);
             document.getElementById('stitchContainer').innerHTML = '';
             document.getElementById('targetDisplayContainer').innerHTML = '';
-            displayText(newString, document.getElementById('knotContainer'));
+            displayText(linkedNewstring, document.getElementById('knotContainer'));
         }
 
-        function continueStitch(){
-            const newString = createLinks(story.ContinueMaximally());
-            displayText(newString, document.getElementById('stitchContainer'));
+        function continueStitch(nextLine){
+            const newString = nextLine ? nextLine.concat(story.ContinueMaximally()) : story.ContinueMaximally();
+            const linkedNewstring = createLinks(newString);
+            displayText(linkedNewstring, document.getElementById('stitchContainer'));
         }
 
-        function continueStory() {
+        function continueStory(newKnotUnparsable) {
             let tags;
             try{tags = story.TagsForContentAtPath(getCurrentInkStitch());}
             catch(err){console.warn(`no valid stitch ${err}`)}
             if (currentKnot !== getCurrentInkKnot() || tags && tags.includes('divert')){
-                story.Continue();
+                const nextLine = story.Continue();
                 const newKnot = getCurrentInkKnot();
-                if (newKnot === unparsableKnot) { 
-                    continueStitch();
+                if (newKnot === unparsableKnot || newKnotUnparsable) {
+                    continueStitch(nextLine);
                     story.ChoosePathString(currentKnot);
                 } 
                 else {
                     currentKnot = newKnot;
-                    continueKnot();
+                    continueKnot(nextLine);
                 }
-            }else {
+            }else if (tags && tags.includes('reload')){
+                const currentStitch = getCurrentInkStitch();
+                story.ContinueMaximally();
+                story.ChoosePathString(currentKnot);
+                continueKnot();
+                story.ChoosePathString(currentStitch);
+                continueStitch();
+            } else{
                 continueStitch();
             }
         }
