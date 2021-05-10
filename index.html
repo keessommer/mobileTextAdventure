@@ -74,7 +74,8 @@
         </div>
     </body>
     <script src="ink.js"></script>
-    <script src="script2.js"></script>
+    <script src="script3.js"></script>
+    <!-- <script src="script2.js"></script> -->
     <!-- <script src="script.js"></script> -->
     <script>
         function clickWord(e) {
@@ -103,9 +104,11 @@
                 targetText = getTargetTextFromElement(target);
             }
             lastSelected = undefined;
-            // if a combination is made, if the combination doesn't exist, but one of them does have an entty go there
+            console.log(currentKnot);
+            console.log(targetText);
             story.ChoosePathString(`${currentKnot}.${targetText}`);
             let newKnotUnparsable;
+            console.log('called');
             if (story.state.currentPathString.split('.')[1] === '0'){
                 const handleUnparsable = () => {
                     story.ChoosePathString(`${currentKnot}.unparsableOverride`);
@@ -170,6 +173,7 @@
         }
 
         function continueStory(newKnotUnparsable) {
+            console.log(getCurrentInkStitch());
             let tags;
             try{tags = story.TagsForContentAtPath(getCurrentInkStitch());}
             catch(err){console.warn(`no valid stitch ${err}`)}
