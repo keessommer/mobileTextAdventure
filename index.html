@@ -104,11 +104,8 @@
                 targetText = getTargetTextFromElement(target);
             }
             lastSelected = undefined;
-            console.log(currentKnot);
-            console.log(targetText);
             story.ChoosePathString(`${currentKnot}.${targetText}`);
             let newKnotUnparsable;
-            console.log('called');
             if (story.state.currentPathString.split('.')[1] === '0'){
                 const handleUnparsable = () => {
                     story.ChoosePathString(`${currentKnot}.unparsableOverride`);
@@ -141,7 +138,11 @@
             .replaceAll('.', '')
             .replaceAll(',', '')
             .replaceAll('<br>', '');
-            if(!display){ returnText = returnText.replaceAll(' ', '') }
+            if(!display){
+                if (Array.from(target.classList).includes('underscore')){returnText = '_'.concat(returnText)}
+                returnText = returnText.replaceAll(' ', '');
+            }
+            console.log(returnText);
             return returnText;
         }
 
@@ -149,12 +150,14 @@
             return inputString
             .replaceAll('\n', ' <br>')
             .split(' ')
-            .map((w) => `<a onclick="clickWord(event)">${w}</a>`)
+            .map((w) => `<a onclick="clickWord(event)"
+            ${w.charAt(0) === '_' ? ` class="underscore" ` : ``}>${w}</a>`)
             .join(' ');
         }
 
         function displayText(text, target){
             target.innerHTML = text
+            .replaceAll('_', '')
             .replaceAll('&', ' ');
         }
         
@@ -173,13 +176,12 @@
         }
 
         function continueStory(newKnotUnparsable) {
-            console.log(getCurrentInkStitch());
             let tags;
             try{tags = story.TagsForContentAtPath(getCurrentInkStitch());}
             catch(err){console.warn(`no valid stitch ${err}`)}
             if (currentKnot !== getCurrentInkKnot() || tags && tags.includes('divert')){
                 const nextLine = story.Continue();
-                const newKnot = getCurrentInkKnot();
+                const newKnot = getCurrentInkKnot();;
                 if (newKnot === unparsableKnot || newKnotUnparsable) {
                     continueStitch(nextLine);
                     story.ChoosePathString(currentKnot);
